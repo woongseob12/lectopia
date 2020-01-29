@@ -1,0 +1,65 @@
+#pragma warning(disable :4996)
+#include<stdio.h>
+void forEach(void *start, void *end, size_t size, void(*workData)(void *vp));
+void showInt(void *vp);
+void showDouble(void *vp);
+typedef struct _person {
+	char name[20];
+	int age;
+	double height;
+}Person;
+void showPerson(void *vp);
+void showString(void *vp);
+
+int main()
+{
+	int   x[10] = { 1,2,3,4,5,6,7,8,9,10 };
+	double   y[5] = { 1.1, 2.2, 3.3, 4.4, 5.5 };
+	Person pAry[3] = { {"홍길동",20, 172.5},{"강감찬", 24, 174.4},{"신사임당", 26, 167.7} };
+	char str[4][20] = { "apple", "melon", "strawberry", "watermelon" };
+
+	printf("[ x 배열 출력하기 ]\n");
+	forEach(x, x + 10, sizeof(int), showInt);
+
+	printf("\n[ y 배열 출력하기 ]\n");
+	forEach(y, y + 5, sizeof(double), showDouble);
+	
+	printf("\n[ Person 구조체 출력하기 ]\n");
+	forEach(pAry, pAry + 3, sizeof(Person), showPerson);
+
+	printf("\n[ 문자열 출력하기 ]\n");
+	forEach(str, str + 4, sizeof(str[0]), showString);
+	
+	getchar();
+	return 0;
+}
+void forEach(void *start, void *end, size_t size, void(*workData)(void *vp))
+{
+	while (start != end)
+	{
+		workData(start);
+		start = (char *)start + size;
+	}
+}
+
+void showInt(void *vp)
+{
+	printf("x=%d\n", *(int *)vp);
+}
+
+void showDouble(void *vp)
+{
+	printf("y=%.1lf\n", *(double *)vp);
+}
+
+void showPerson(void *vp)
+{
+	Person *p = (Person *)vp;
+	printf("%s /%d /%.1lf\n", p->name, p->age, p->height);
+}
+
+void showString(void *vp)
+{
+	//printf("%s\n", (char*)vp);
+	printf("%s\n", vp);
+}
