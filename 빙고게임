@@ -1,0 +1,405 @@
+#pragma warning(disable : 4996)
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int menuSelect();
+void practiceMode();
+void vsMode();
+void displayPractice(int, int **);
+void displayVs(int size, int **, int **);
+int* setBingo(int);
+int* comSetBingo(int);
+void clearPractice(int**, int);
+void clearVsUser(int **, int **, int);
+void clearVsCom(int **, int **, int);
+int bingoCount(int **, int);
+
+int main()
+{
+	int menu;
+	do {
+		menu = menuSelect();
+		if (menu == 1) {
+			practiceMode();
+		}
+		else if (menu == 2) {
+			vsMode();
+		}
+	} while (menu != 3);
+
+	return 0;
+}
+
+int menuSelect()
+{
+	int menu;
+	printf("\n1. 연습게임(개인 연습용)\n2. 대전게임(컴퓨터와 대전용)\n3. 종료\n\n# 메뉴 선택 : ");
+	scanf("%d", &menu);
+	return menu;
+}
+
+void practiceMode()
+{
+	int size;
+	int *randomNum;
+	int **bingoP;
+
+	printf("\n연습용 빙고게임을 시작합니다.\n\n# 빙고판의 가로,세로 크기를 입력해주세요(양수값 입력) : ");
+	scanf("%d", &size);
+
+	randomNum = setBingo(size);
+
+	bingoP = (int**)malloc(sizeof(int*)*size);
+	for (int i = 0; i < size; i++) {
+		bingoP[i] = (int*)malloc(sizeof(int)*size);
+	}
+
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			bingoP[i][j] = randomNum[i*size + j];
+		}
+	}
+
+	displayPractice(size, bingoP);
+
+	while (bingoCount(bingoP, size) < size) {
+		clearPractice(bingoP, size);
+	}
+
+	free(randomNum);
+	for (int i = 0; i < size; i++) {
+		free(bingoP[i]);
+	}
+	free(bingoP);
+}
+
+void displayPractice(int size, int **bingoP)
+{
+	int maxNum = size * size;
+	printf("\n");
+	for (int i = 0; i < size; i++) {
+		printf(" | ");
+		for (int j = 0; j < size; j++) {
+			if (bingoP[i][j] > maxNum) {
+				printf("  X");
+			}
+			else {
+				printf(" %2d", bingoP[i][j]);
+			}
+		}
+		printf(" |\n");
+	}
+}
+
+int* setBingo(int size)
+{
+	int maxNum = size * size;
+	int *randomNum = (int *)malloc(sizeof(int)*maxNum);
+	int count = 0;
+	int same;
+
+	srand((unsigned)time(NULL));
+	int random;
+
+	while (count < maxNum) {
+		same = 0;
+		random = (rand() % (maxNum)) + 1;
+		for (int i = 0; i < count; i++) {
+			if (randomNum[i] == random) {
+				same = 1;
+				break;
+			}
+		}
+		if (same == 0) {
+			randomNum[count] = random;
+			count++;
+		}
+	}
+	return randomNum;
+}
+
+void clearPractice(int **bingoP, int size)
+{
+	int maxNum = size * size;
+	int clear;
+
+
+	printf("\n# 지울 숫자 입력(1~%d) : ", maxNum);
+	scanf("%d", &clear);
+	for (int i = 0; i < size; i++) {
+		if (clear == maxNum) {
+			clear = 0;
+		}
+		for (int j = 0; j < size; j++) {
+			if (bingoP[i][j] % maxNum == clear) {
+				if (bingoP[i][j] > maxNum) {
+					printf("*이미 지워진 숫자 입니다. 다시 입력하세요.");
+				}
+				else {
+					bingoP[i][j] += maxNum;
+					displayPractice(size, bingoP);
+				}
+			}
+		}
+	}
+}
+
+int bingoCount(int **bingoP, int size)
+{
+	int count = 0;
+	int i, j;
+	int maxNum = size * size;
+
+	//대각선줄
+	for (i = 0; i < size; i++) {
+		if (bingoP[i][i] <= maxNum) {
+			break;
+		}
+	}
+	if (i == size) {
+		count++;
+	}
+	//반대 대각선줄
+	for (i = 0; i < size; i++) {
+		if (bingoP[i][size - i - 1] <= maxNum) {
+			break;
+		}
+	}
+	if (i == size) {
+		count++;
+	}
+	//가로줄
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (bingoP[i][j] <= maxNum) {
+				break;
+			}
+		}
+		if (j == size) {
+			count++;
+		}
+	}
+	//세로줄
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (bingoP[j][i] <= maxNum) {
+				break;
+			}
+		}
+		if (j == size) {
+			count++;
+		}
+	}
+	return count;
+}
+
+void vsMode()
+{
+	int size;
+	int *userNum;
+	int *comNum;
+	int **userBingo;
+	int **comBingo;
+	int userCnt, comCnt;
+
+	printf("\n사용자:컴퓨터 대전 빙고게임을 시작합니다.\n\n# 빙고판의 가로,세로 크기를 입력해주세요(양수값 입력) : ");
+	scanf("%d", &size);
+
+	printf("\n\n사용자 빙고게임판 내용을 생성중입니다.\n");
+	userNum = setBingo(size);
+	userBingo = (int**)malloc(sizeof(int*)*size);
+	for (int i = 0; i < size; i++) {
+		userBingo[i] = (int*)malloc(sizeof(int)*size);
+	}
+
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			userBingo[i][j] = userNum[i*size + j];
+		}
+	}
+
+	printf("컴퓨터 빙고게임판 내용을 생성중입니다.\n");
+	comNum = comSetBingo(size);
+	comBingo = (int**)malloc(sizeof(int*)*size);
+	for (int i = 0; i < size; i++) {
+		comBingo[i] = (int*)malloc(sizeof(int)*size);
+	}
+
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			comBingo[i][j] = comNum[i*size + j];
+		}
+	}
+
+	displayVs(size, userBingo, comBingo);
+
+	while (((userCnt = bingoCount(userBingo, size)) < size) && ((comCnt = bingoCount(comBingo, size)) < size)) {
+		clearVsUser(userBingo, comBingo, size);
+		clearVsCom(userBingo, comBingo, size);
+	}
+	if (userCnt > comCnt) {
+		printf("\n# 사용자 승!");
+	}
+	else if (userCnt < comCnt) {
+		printf("\n# 컴퓨터 승!");
+	}
+	else {
+		printf("\n# 사용자, 컴퓨터 무승부!");
+	}
+
+	free(userNum);
+	free(comNum);
+	for (int i = 0; i < size; i++) {
+		free(userBingo[i]);
+	}
+	free(userBingo);
+	for (int i = 0; i < size; i++) {
+		free(comBingo[i]);
+	}
+	free(comBingo);
+}
+
+void displayVs(int size, int **userBingo, int **comBingo)
+{
+	int maxNum = size * size;
+	printf("\n [user]                     [computer]\n");
+	for (int i = 0; i < size; i++) {
+		printf(" | ");
+		for (int j = 0; j < size; j++) {
+			if (userBingo[i][j] > maxNum) {
+				printf("  X");
+			}
+			else {
+				printf(" %2d", userBingo[i][j]);
+			}
+		}
+		printf(" |        |");
+		for (int j = 0; j < size; j++) {
+			if (comBingo[i][j] > maxNum) {
+				printf("  X");
+			}
+			else {
+				printf("  ?");
+				//printf(" %2d", comBingo[i][j]);
+			}
+		}
+		printf(" |\n");
+	}
+}
+
+void clearVsUser(int **userBingo, int **comBingo, int size)
+{
+	int maxNum = size * size;
+	int clear;
+	int same = 0;
+
+	while (same == 0) {
+		printf("\n# 지울 숫자 입력(1~%d) : ", maxNum);
+		scanf("%d", &clear);
+		for (int i = 0; i < size; i++) {
+			if (clear == maxNum) {
+				clear = 0;
+			}
+			for (int j = 0; j < size; j++) {
+				if (userBingo[i][j] % maxNum == clear) {
+					if (userBingo[i][j] > maxNum) {
+						printf("*이미 지워진 숫자 입니다. 다시 입력하세요.");
+					}
+					else {
+						userBingo[i][j] += maxNum;
+						same = 1;
+					}
+				}
+			}
+		}
+	}
+	for (int i = 0; i < size; i++) {
+		if (clear == maxNum) {
+			clear = 0;
+		}
+		for (int j = 0; j < size; j++) {
+			if (comBingo[i][j] % maxNum == clear) {
+				if (comBingo[i][j] <= maxNum) {
+					comBingo[i][j] += maxNum;
+					displayVs(size, userBingo, comBingo);
+				}
+			}
+		}
+	}
+
+}
+
+void clearVsCom(int **userBingo, int **comBingo, int size)
+{
+	int maxNum = size * size;
+	int same = 0;
+	int clear;
+
+	while (same == 0) {
+		clear = (rand() % (maxNum)) + 1;
+
+		for (int i = 0; i < size; i++) {
+			if (clear == maxNum) {
+				clear = 0;
+			}
+			for (int j = 0; j < size; j++) {
+				if (userBingo[i][j] % maxNum == clear) {
+					if (userBingo[i][j] <= maxNum) {
+						userBingo[i][j] += maxNum;
+						same = 1;
+					}
+				}
+			}
+		}
+		for (int i = 0; i < size; i++) {
+			if (clear == maxNum) {
+				clear = 0;
+			}
+			for (int j = 0; j < size; j++) {
+				if (comBingo[i][j] % maxNum == clear) {
+					if (comBingo[i][j] <= maxNum) {
+						comBingo[i][j] += maxNum;
+					}
+				}
+			}
+		}
+	}
+	if (clear == 0) {
+		clear = maxNum;
+	}
+	printf("\n# 컴퓨터가 선택한 숫자는 (%2d)입니다.\n", clear);
+	displayVs(size, userBingo, comBingo);
+}
+
+int* comSetBingo(int size)
+{
+	int maxNum = size * size;
+	int *randomNum = (int *)malloc(sizeof(int)*maxNum);
+	int count = 0;
+	int same;
+
+	time_t t;
+	struct tm *gmt;
+	t = time(NULL);
+	gmt = gmtime(&t);
+	srand((unsigned int)gmt);
+
+	int random;
+
+	while (count < maxNum) {
+		same = 0;
+		random = (rand() % (maxNum)) + 1;
+		for (int i = 0; i < count; i++) {
+			if (randomNum[i] == random) {
+				same = 1;
+				break;
+			}
+		}
+		if (same == 0) {
+			randomNum[count] = random;
+			count++;
+		}
+	}
+	return randomNum;
+}
