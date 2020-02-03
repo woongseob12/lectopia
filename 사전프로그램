@@ -1,0 +1,220 @@
+#pragma warning (disable : 4996)
+#define dicSize 10
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int menu(const char **, size_t); 
+int dInput(void *, int); 
+int dSort(const void *, const void *);
+void dOutput(void *, int); 
+void dSearch(void *); 
+void *dFind(void* , void* , char* , size_t ); 
+int dDelete(void *, int); 
+void myflush();
+
+typedef struct _dic {
+
+	char word[20];
+	char mean[80];
+	int len;
+}Dic;
+
+int main()
+{
+	Dic ary[dicSize] = { {"","",0}, {"","",0}, {"","",0}, {"","",0}, {"","",0}, {"","",0}, { "","",0 }, { "","",0 }, { "","",0 }, { "","",0 }};
+	int menuNum;
+	int menuCnt;
+	int dicCnt = 0;
+	const char *menuList[] = { "입력하기", "출력하기","검색하기","삭제하기","종료" };
+	
+	menuCnt = sizeof(menuList) / sizeof(menuList[0]);
+
+	while (1) {
+		menuNum = menu(menuList, menuCnt);
+		if (menuNum == menuCnt) 
+		{
+			break;
+		}
+		switch (menuNum)
+		{
+		case 1: dicCnt = dInput(ary, dicCnt);  break;
+		case 2: dOutput(ary, dicCnt); break;
+		case 3: dSearch(ary); break;
+		case 4: dicCnt = dDelete(ary, dicCnt);
+		}
+	}
+	return 0;
+}
+
+int menu(const char **menuList, size_t menuCnt)
+{
+	size_t i;
+	size_t menuNum = 0;	
+	int res;			 
+	for (i = 0; i < menuCnt; i++)
+	{
+		printf("%d. %s\n", i + 1, menuList[i]);
+	}
+
+	while (menuNum<1 || menuNum>menuCnt)  
+	{
+		printf("# 메뉴번호를 입력하세요 : ");
+		res = scanf("%u", &menuNum);
+		if (res != 1)  
+		{
+			myflush();
+			continue;
+		}
+	}
+	return menuNum;
+}
+
+int dInput(void *p, int cnt) {
+	char wordTemp[20];
+	char meanTemp[80];
+	Dic *dP;
+	int i;
+
+	while (1) {
+		if (cnt == dicSize) {
+			printf("단어장이 꽉 찼습니다.\n");
+			break;
+		}
+		i = 0;
+		while (i < dicSize) {
+			dP = (Dic *)p + i;
+			if ((strcmp(dP->word, "") == 0) && (dP->len == 0)) {
+				break;
+			}
+			i++;
+		}
+		dP = (Dic *)p + i;
+
+		printf("# 단어를 입력하시오 : ");
+		scanf("%s", wordTemp);
+		if (strcmp(wordTemp, "end") == 0) { break; }
+
+		printf("# 뜻을 입력하시오 : ");
+		scanf("%s", meanTemp);
+		if (strcmp(meanTemp, "end") == 0) { break; }
+		
+		strcpy(dP->word, wordTemp);
+		strcpy(dP->mean, meanTemp);
+		dP->len = strlen(dP->word);
+
+		cnt++;
+	}
+	return cnt;
+}
+
+void dOutput(void *p,int cnt)
+{
+	Dic *dP;
+	char meanTemp[51];
+	int num = 1;
+
+	qsort(p, cnt, sizeof(Dic), dSort);
+
+	for (int i = 0; i < dicSize; i++) {
+		dP = (Dic *)p + i;
+		if ((strcmp(dP->word, "") != 0)&&(dP->len != 0)) {
+			if (strlen(dP->mean) > 50) {
+				for (int j = 0; j < 50; j++) {
+					meanTemp[j] = dP->mean[j];
+				}
+				meanTemp[50] = '\0';
+				printf("%d.%20s(%d) : %-50s~\n", num, dP->word, dP->len, meanTemp); 
+			}
+			else {
+				printf("%d.%20s(%d) : %-50s\n", num, dP->word, dP->len, dP->mean);
+			}
+			num++;
+		}
+	}
+	printf("총 단어의 수 :%d\n", cnt);
+}
+
+int dSort(const void *a, const void *b)
+{
+	return (strcmp((char *)a, (char *)b));
+}
+
+void *dFind(void* beginP, void* endP, char *value, size_t dataSize) 
+{
+	while (beginP != endP && strcmp(((Dic*)beginP)->word, value) != 0)
+	{
+		beginP = (char*)beginP + dataSize;
+	}
+	return beginP;
+}
+
+void dSearch(void *p)
+{
+	char temp[20];
+	Dic *dP;
+	Dic *endP;
+
+	endP = (Dic *)p + dicSize;
+
+	while (1) {
+		printf("# 찾을 단어를 입력하시오 : ");
+		scanf("%s", temp);
+		if (strcmp(temp, "end") == 0) { break; }
+
+		dP = (Dic*)dFind(p, endP, temp, sizeof(Dic));
+		
+		if (dP == endP) {
+			printf("Not found!!!\n");
+		}
+		else {
+			printf(" 단어의 뜻 : %s\n", dP->mean);
+		}
+	}
+}
+
+int dDelete(void *p, int cnt) 
+{
+	char temp[20];
+	Dic *dP;
+	void *endP;
+	char del;
+
+	endP = (char*)p + sizeof(Dic) * dicSize;
+
+	while (1) {
+		printf("# 삭제할 단어를 입력하시오 : ");
+		scanf("%s", temp);
+		if (strcmp(temp, "end") == 0) { break; }
+
+		dP = (Dic*)dFind(p, endP, temp, sizeof(Dic));
+
+		if (dP == endP) {
+			printf("없는 단어입니다.\n");
+		}
+		else {
+			printf("# 정말로 삭제하시겠습니까?(y/n) : ");
+			myflush();
+			scanf("%c", &del);
+			if (del == 'y') {
+				strcpy(dP->word, "");
+				strcpy(dP->mean, "");
+				dP->len = 0;
+				printf("삭제되었습니다.\n");
+				cnt--;
+			}
+			else {
+				printf("삭제가 취소되었습니다.\n");
+			}
+		}
+	}
+	return cnt;
+}
+
+void myflush()
+{
+	while (getchar() != '\n')
+	{
+		;
+	}
+}
