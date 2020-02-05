@@ -1,0 +1,231 @@
+#pragma warning (disable : 4996)
+#define WORDNUM 5
+#define MAXLEN 60
+
+#include <stdio.h>
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+enum BOOL { FALSE, TRUE };
+
+typedef struct _node Node;
+struct  _node {
+	Node *prev;
+	Node *next;
+	char word[MAXLEN];
+};
+
+typedef  struct  _list {
+	Node *head;
+	Node *tail;
+	int size;
+}List;
+
+FILE* fileIO();
+void createPointWord(FILE* fp, char[WORDNUM][MAXLEN]);
+BOOL createList(List *);	
+void displayList(List*);
+void displayPointWord(char [WORDNUM][MAXLEN]);
+BOOL add(List* );
+int checkSame(List*, char[WORDNUM][MAXLEN], int);
+void freeList(List* lp);
+int pSort(const void *, const void *);
+void game(char[WORDNUM][MAXLEN], List *);
+
+
+int main()
+{
+	
+	FILE* fp;
+	char pointWord[WORDNUM][MAXLEN];
+	List list;
+	BOOL res;
+
+	fp = fileIO();
+	res = createList(&list);
+	if (res != TRUE) {
+		printf("list 생성 실패 프로그램 종료!\n");
+		fclose(fp);
+		return 0;
+	}
+		
+	createPointWord(fp, pointWord);
+	game(pointWord, &list);
+	
+	fclose(fp);
+
+	return 0;
+}
+
+FILE* fileIO()
+{
+	FILE* fp;
+
+	fp = fopen("c:\\data\\pointWord.txt", "rt");
+	assert(fp != NULL);
+
+	return fp;
+}
+
+void createPointWord(FILE* fp, char pointWord[WORDNUM][MAXLEN])
+{
+	printf("# 포인트 단어를 파일로부터 입력 받는 중입니다....\n");
+	for (int i = 0; i < WORDNUM; i++) {
+		if (fscanf(fp, "%s", pointWord[i]) != 1) {
+			break;
+		}
+	}
+	qsort(pointWord[0], WORDNUM, sizeof(pointWord[0]), pSort);
+}
+
+int pSort(const void *a, const void *b)
+{
+	return (strcmp((char *)a, (char *)b));
+}
+
+void game(char pointWord[WORDNUM][MAXLEN], List *lP)
+{
+	BOOL res;
+	int score = 0;
+	while (score < 100) {//포인터단어가 모두 사라지면 
+		while (1) {
+			displayPointWord(pointWord);
+			displayList(lP);
+			res = add(lP);
+			if (res == TRUE) { //성공적으로 추가되면 
+				break;
+			}
+		}
+		score = checkSame(lP, pointWord, score);
+		qsort(pointWord[0], WORDNUM, sizeof(pointWord[0]), pSort);
+	}
+	printf("\n** 당신의 점수는 %d점 입니다.\n", score);
+}
+
+BOOL createList(List* lp)
+{
+	Node* newP;
+	if (lp == NULL) {
+		return FALSE;
+	}
+	lp->head = (Node*)malloc(sizeof(Node));
+	if (lp->head == NULL) {
+		return FALSE;
+	}
+	lp->tail = (Node*)malloc(sizeof(Node));
+	if (lp->tail == NULL) {
+		free(lp->head);
+		return FALSE;
+	}
+
+	lp->head->next = lp->tail;
+	lp->tail->next = lp->tail;
+	lp->head->prev = lp->head;
+	lp->tail->prev = lp->head;
+	lp->size = 0;
+
+	newP = (Node*)calloc(1, sizeof(Node));
+	if (newP != NULL) {
+		strcpy(newP->word, "pointer");
+		newP->next = lp->tail;
+		lp->tail->prev->next = newP;
+		newP->prev = lp->tail->prev;
+		lp->tail->prev = newP;
+		++lp->size;
+	}
+
+	return TRUE;
+}
+
+void displayPointWord(char pointWord[WORDNUM][MAXLEN])
+{
+	qsort(pointWord[0], WORDNUM, sizeof(pointWord[0]), pSort);
+	printf("\n* 포인트단어 : ");
+	for (int i = 0; i < WORDNUM; i++) {
+		if (strcmp(pointWord[i],"") !=0) {
+			printf("%s /", pointWord[i]);
+		}
+	}
+}
+
+void displayList(List* lp)
+{
+	Node* curp;
+
+	if (lp == NULL) {
+		return;
+	}
+
+	curp = lp->head->next;
+
+	printf("\n* 사용자 입력 단어 :");
+	while (curp != lp->tail) {
+		printf(" %s/", curp->word);
+		curp = curp->next;
+	}
+	printf("\n");
+}
+
+BOOL add(List* lp)
+{
+	Node* newP;
+	char temp[MAXLEN];
+
+	if (lp == NULL) {
+		return FALSE;
+	}
+	
+	printf("* 끝말잇기 단어 입력(%d회차) : ", lp->size);
+	scanf("%s", temp);
+	if (temp[0] != lp->tail->prev->word[strlen(lp->tail->prev->word) - 1]) {
+		printf("잘못 입력하셨습니다\n");
+		return FALSE;
+	}
+	newP = (Node*)calloc(1, sizeof(Node));
+	if (newP != NULL) {
+		strcpy(newP->word, temp);
+		newP->next = lp->tail;
+		lp->tail->prev->next = newP;
+		newP->prev = lp->tail->prev;
+		lp->tail->prev = newP;
+
+		++lp->size;
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+int checkSame(List* lp, char pointWord[WORDNUM][MAXLEN], int score)
+{
+	for (int i = 0; i < WORDNUM; i++) {
+		if (strcmp(pointWord[i], lp->tail->prev->word) == 0) {
+			strcpy(pointWord[i], "");
+			score += 20;
+			break;
+		}
+	}
+	return score;
+}
+
+void freeList(List* lp)
+{
+	Node* curp;
+	Node* nextp;
+	if (lp == NULL) { 
+		return;
+	}
+	curp = lp->head->next;
+	while (curp != lp->tail) {
+		nextp = curp->next;
+		free(curp);
+		curp = nextp;
+	}
+	free(lp->head);
+	free(lp->tail);
+
+	lp->head = lp->tail = NULL;
+	lp->size = 0;
+	return;
+}
