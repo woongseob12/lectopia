@@ -403,3 +403,4 @@ int* comSetBingo(int size)
 	}
 	return randomNum;
 }
+
