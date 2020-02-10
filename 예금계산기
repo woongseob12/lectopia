@@ -1,0 +1,128 @@
+#pragma warning (disable : 4996)
+#include <iostream>
+using namespace std;
+#include <cstring>
+
+class Save
+{
+private:
+	char name[20];	//이름
+	int capital;	//원금
+	int profit;		//이자소득
+	int tax;		//세금
+	int tot;		//총금액
+	static double ratio;	//이율
+public:
+	static double taxRatio;	//세율
+	Save(const char *np = "아무개", int n = 0);
+	void calculate();	//총금액 계산 함수
+	static void setRatio(double r = 0.1);
+	double getRatio();
+	char* getName();
+	int getCapital();
+	void setProfit();
+	int getProfit();
+	void setTax();
+	int getTax();
+	void setTot();
+	int getTot();
+	double getTaxtRatio();
+	void prn();
+};
+
+double Save::ratio = 0.2;
+double Save::taxRatio = 0.1;
+
+Save::Save(const char *np , int n)
+{
+	strcpy(name, np);
+	capital = n;
+}
+
+void Save::calculate() 
+{
+	setProfit();
+	setTax();
+	setTot();
+}
+
+void Save::setRatio(double r)
+{
+	Save::ratio = r;
+}
+
+double Save::getRatio()
+{
+	return ratio;
+}
+
+char* Save::getName()
+{
+	return name;
+}
+
+int Save::getCapital()
+{
+	return capital;
+}
+
+void Save::setProfit()
+{
+	profit = (int)(ratio * capital);
+}
+
+int Save::getProfit()
+{
+	return profit;
+}
+
+void Save::setTax()
+{
+	tax = (int)(taxRatio * profit);
+}
+
+int Save::getTax()
+{
+	return tax;
+}
+
+void Save::setTot()
+{
+	tot = capital + profit - tax;
+}
+
+int Save::getTot()
+{
+	return tot;
+}
+
+double Save::getTaxtRatio()
+{
+	return taxRatio;
+}
+
+void Save::prn()
+{
+	cout << "이름 : " << getName() << endl;
+	cout << "원금 : " << getCapital() << endl;
+	cout << "이자소득 : " << getProfit() << endl;
+	cout << "세금 : " << getTax() << endl;
+	cout << "총금액 : " << getTot() << endl;
+	cout << "이율 : " << getRatio() << endl;
+	cout << "세율 : " << Save::taxRatio << endl << endl;
+}
+
+int main()
+{
+	Save a("철이", 1000000), b("메텔", 2000000);
+	a.calculate();
+	a.prn();
+
+	Save::taxRatio = 0.15;
+	Save::setRatio(0.25);
+
+	b.calculate();
+	b.prn();
+
+	return 0;
+}
