@@ -1,0 +1,138 @@
+#include <iostream>
+using namespace std;
+
+class Time {
+private:
+	int hour;
+	int min;
+	double time;
+	static int mode;
+	enum {integer, real};
+public:
+	Time();
+	Time(int, int);
+	Time(double);
+	Time(const Time &tr);
+	Time plus(const Time &tr);
+	void setHour(int);
+	int getHour();
+	void setMin(int);
+	int getMin();
+	friend ostream &operator<<(ostream &os, const Time&br);
+	static void mod_change();
+};
+
+int Time::mode = Time::integer;
+
+int main()
+{
+	Time a(3, 21);
+	Time b(2.7);
+	cout << "기본 출력 형태(시간,분)..." << endl;
+	cout << a << endl;
+	cout << b << endl;
+	Time::mod_change();
+	cout << "출력모드를 바꾼 후..." << endl;
+	cout << a << endl;
+	cout << b << endl;
+	return 0;
+}
+
+Time::Time()
+{
+	hour = 0;
+	min = 0;
+	time = 0.0;
+}
+
+Time::Time(int h, int m)
+{
+	hour = h;
+	min = m;
+	time = (double)h + ((double)m / 60.0);
+}
+
+Time::Time(double d)
+{
+	hour = (int)d;
+	min = (int)((d - hour) * 60);
+	time = d;
+}
+
+Time::Time(const Time &tr)
+{
+	hour = tr.hour;
+	min = tr.min;
+}
+
+Time Time::plus(const Time &tr)
+{
+	int h, m;
+	
+	h = this->hour + tr.hour;
+	m = this->min + tr.min;
+
+	if (m > 60) {
+		m = m % 60;
+		h += m / 60;
+	}
+	Time temp(h, m);
+
+	return temp;
+}
+
+void Time::setHour(int h)
+{
+	if (h <= 0) {
+		this->hour = 0;
+	}
+	else {
+		this->hour = h;
+	}
+}
+
+int Time::getHour()
+{
+	return this->hour;
+}
+
+void Time::setMin(int m)
+{
+	if (m <= 0) {
+		this->min = 0;
+	}
+	else if (m >= 60) {
+		this->min = m % 60;
+		this->hour += m / 60;
+	}
+	else {
+		this->min = m;
+	}
+}
+
+int Time::getMin() 
+{
+	return this->min;
+}
+
+ostream &operator<<(ostream &os, const Time &br)
+{
+	if (Time::mode == Time::integer) {
+		cout << br.hour << "시간 " << br.min << "분";
+	}
+	else {
+		cout << br.time << "시간";
+	}	
+
+	return os;
+}
+
+void Time::mod_change()
+{
+	if (Time::mode == Time::integer) {
+		Time::mode = Time::real;
+	}
+	else {
+		Time::mode = Time::integer;
+	}
+}
