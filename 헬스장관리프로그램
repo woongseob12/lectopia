@@ -1,0 +1,323 @@
+#pragma warning (disable : 4996)
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+class Fitness
+{
+private:
+	int num;
+	char *name;
+	double weight;
+	double height;
+public:
+	Fitness();
+	Fitness(int num, char *name, double weight, double height);
+	Fitness(Fitness &r);
+	~Fitness();
+	Fitness &operator=(Fitness &);
+	bool operator==(Fitness &);
+	void setNum(int);
+	int getNum();
+	void setName(char *);
+	char *getName();
+	void setWeight(double);
+	double getWeight();
+	void setHeight(double);
+	double getHeight();
+	double bmi();
+};
+
+char menu();
+
+int mRegister(Fitness *[100], int);
+
+void mLook(Fitness *[100], int);
+
+void mFind(Fitness *[100], int);
+
+int mWithdrawal(Fitness *[100], int);
+
+void mManagement(Fitness *[100], int);
+
+void mExit(Fitness *[100], int);
+
+int main()
+{
+	Fitness *fary[100];
+	int memberCnt = 0;
+	char menuNum;
+
+	while (1) {
+		menuNum = menu();
+		if (menuNum == '6') {
+			break;
+		}
+		switch (menuNum)
+		{
+		case '1': memberCnt = mRegister(fary, memberCnt); break;
+		case '2': mLook(fary, memberCnt); break;
+		case '3': mFind(fary, memberCnt); break;
+		case '4': memberCnt = mWithdrawal(fary, memberCnt); break;
+		case '5': mManagement(fary, memberCnt); break;
+		}
+	}
+	mExit(fary, memberCnt);
+
+	return 0;
+}
+
+Fitness::Fitness()
+{
+	num = 0;
+	name = new char[1];
+	strcpy(name, "");
+	weight = 0.0;
+	height = 0.0;
+}
+
+Fitness::Fitness(int n, char *np, double w, double h)
+{
+	num = n;
+	name = new char[strlen(np) + 1];
+	strcpy(name, np);
+	weight = w;
+	height = h;
+}
+
+Fitness::Fitness(Fitness &r)
+{
+	num = r.num;
+	name = new char[strlen(r.name) + 1];
+	strcpy(name, r.name);
+	weight = r.weight;
+	height = r.height;
+}
+ 
+Fitness::~Fitness()
+{
+	delete[] name;
+}
+
+Fitness &Fitness::operator=(Fitness &r)
+{
+	if (this == &r) {	return *this;	}
+	this->num = r.num;
+	delete[] this->name;
+	this->name = new char[strlen(r.name) + 1];
+	strcpy(this->name, r.name);
+	this->weight = r.weight;
+	this->height = r.height;
+
+	return *this;
+}
+
+bool Fitness::operator==(Fitness &r)
+{
+	if (strcmp(name, r.name) == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void Fitness::setNum(int n)
+{
+	num = n;
+}
+
+int Fitness::getNum()
+{
+	return num;
+}
+
+void Fitness::setName(char *n)
+{
+	delete[] name;
+	name = new char[strlen(n) + 1];
+	strcpy(name, n);
+}
+
+char *Fitness::getName()
+{
+	return name;
+}
+
+void Fitness::setWeight(double w)
+{
+	if (w < 0) {
+		weight = 0;
+	}
+	else {
+		weight = w;
+	}
+}
+
+double Fitness::getWeight()
+{
+	return weight;
+}
+
+void Fitness::setHeight(double h)
+{
+	if (h < 0) {
+		height = 0;
+	}
+	else {
+		height = h;
+	}
+}
+
+double Fitness::getHeight()
+{
+	return height;
+}
+
+double Fitness::bmi()
+{
+	double bmi;
+	bmi = weight / ((height / 100) * (height / 100));
+
+	return bmi;
+}
+
+char menu()
+{
+	char n = 0, i;
+	char menulist[6][20] = { "회원등록", "회원전체보기", "회원정보검색", "회원탈퇴", "특별관리 회원", "종료" };
+
+	cout << "--------------------------------------------------------------------------------" << endl;
+	for (i = 0; i < 6; i++) {
+		cout << i + 1 << ". " << menulist[i] << endl;
+	}
+	cout << "메뉴를 선택하시오 : ";
+
+	while (n<'1' || n>'6') {
+		cin >> n;
+	}
+	return n;
+}
+
+int mRegister(Fitness *fary[100],int cnt)
+{
+	char n[20];
+	double w, h;
+	static int num = 1;
+	
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "회원이름 : ";
+	cin >> n;
+	cout << "몸무게(kg) : ";
+	cin >> w;
+	cout << "신장(cm) : ";
+	cin >> h;
+
+	fary[cnt] = new Fitness(num,n,w,h);
+
+	num++;
+	cnt++;
+
+	return cnt;
+}
+
+void mLook(Fitness *fary[100], int cnt)
+{
+	cout << "--------------------------------------------------------------------------------" << endl;
+	for (int i = 0; i < cnt; i++) {
+		cout << i + 1 << ". " << fary[i]->getName() << "/ 몸무게 : " << fary[i]->getWeight() << "kg/ 키 : " << fary[i]->getHeight() << "cm/ 회원 번호 : " << fary[i]->getNum() << endl;
+	}
+}
+
+void mFind(Fitness *fary[100], int cnt)
+{
+	char name[20];
+	int value = 0;
+	
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "검색할 회원의 이름 : ";
+	cin >> name;
+
+	for (int i = 0; i < cnt; i++) {
+		if (strcmp(name, fary[i]->getName()) == 0) {
+			value = 1;
+			cout << i + 1 << ". " << fary[i]->getName() << "/ 몸무게 : " << fary[i]->getWeight() << "kg/ 키 : " << fary[i]->getHeight() << "cm/ 회원 번호 : " << fary[i]->getNum() << endl;
+		}
+	}
+	if (value == 0) {
+		cout << "찾는 회원이 없습니다" << endl;
+	}
+}
+
+int mWithdrawal(Fitness *fary[100], int cnt)
+{
+	int num, i;
+	int delAry;
+	int value = 0;
+	
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "삭제할 회원의 번호 : ";
+	cin >> num;
+
+	for (i = 0; i < cnt; i++) {
+		if (fary[i]->getNum() == num) {
+			delAry = i;
+			value = 1;
+			break;
+		}
+	}
+	
+	if (value == 0) {
+		cout << "없는 회원 번호 입니다." << endl;
+		return cnt;
+	}
+	
+	for (i = delAry; i < cnt - 1; i++) {
+		fary[i] = fary[i + 1];
+	}
+	
+	cnt--;
+	
+	return cnt;
+}
+
+void mManagement(Fitness *fary[100], int cnt)
+{
+	double *bmiCheck;
+	int i;
+	
+	cout << "--------------------------------------------------------------------------------" << endl;
+	bmiCheck = new double[cnt];
+	
+	for (i = 0; i < cnt; i++) {
+		bmiCheck[i] = fary[i]->bmi();
+	}
+
+	cout << "고도비만 명단" << endl;
+	for (i = 0; i < cnt; i++) { 
+		if (bmiCheck[i] >= 40.0) {
+			cout << fary[i]->getNum() << ". " <<fary[i]->getName() << "/ 몸무게 : " << fary[i]->getWeight() << "kg/ 키 : " << fary[i]->getHeight() << "cm/ 회원 번호 : " << fary[i]->getNum() << endl;
+		}
+	}
+	cout << "------------------------------------------------------------" << endl << "비만 명단" << endl;
+	for (i = 0; i < cnt; i++) { 
+		if (bmiCheck[i] < 40.0 && bmiCheck[i] >= 30.0) {
+			cout << fary[i]->getNum() << ". " << fary[i]->getName() << "/ 몸무게 : " << fary[i]->getWeight() << "kg/ 키 : " << fary[i]->getHeight() << "cm/ 회원 번호 : " << fary[i]->getNum() << endl;
+		}
+	}
+	cout << "------------------------------------------------------------" << endl << "과체중 명단" << endl;
+	for (i = 0; i < cnt; i++) { 
+		if (bmiCheck[i] < 30.0 && bmiCheck[i] >= 25.0) {
+			cout << fary[i]->getNum() << ". " << fary[i]->getName() << "/ 몸무게 : " << fary[i]->getWeight() << "kg/ 키 : " << fary[i]->getHeight() << "cm/ 회원 번호 : " << fary[i]->getNum() << endl;
+		}
+	}
+
+	delete[] bmiCheck;
+}
+
+void mExit(Fitness *fary[100], int cnt)
+{
+	for (int i = 0; i < cnt; i++) {
+		delete fary[i];
+	}
+}
